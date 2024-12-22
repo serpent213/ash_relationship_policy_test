@@ -14,6 +14,17 @@ defmodule AshTest.Accounts.User do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  policies do
+    bypass expr(:admin in ^actor(:roles)) do
+      authorize_if always()
+    end
+
+    policy action_type(:read) do
+      # Member can access her own record
+      authorize_if expr(member.id == ^actor(:id))
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -33,16 +44,5 @@ defmodule AshTest.Accounts.User do
   aggregates do
     list :roles, :role_mappings, :role
     list :groups, :group_mappings, :group
-  end
-
-  policies do
-    bypass expr(:admin in ^actor(:roles)) do
-      authorize_if(always())
-    end
-
-    policy action_type(:read) do
-      # Member can access her own record
-      authorize_if(expr(member.id == ^actor(:id)))
-    end
   end
 end
